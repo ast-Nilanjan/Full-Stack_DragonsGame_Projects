@@ -1,109 +1,73 @@
-console.log("Welcome to Spotify");
+score = 0;
+cross = true;
 
-// Initialize the Variables
-let songIndex = 0;
-let audioElement = new Audio('songs/1.mp3');
-let masterPlay = document.getElementById('masterPlay');
-let myProgressBar = document.getElementById('myProgressBar');
-let gif = document.getElementById('gif');
-let masterSongName = document.getElementById('masterSongName');
-let songItems = Array.from(document.getElementsByClassName('songItem'));
-
-let songs = [
-    {songName: "Tauba Tauba", filePath: "songs/1.mp3", coverPath: "covers/1.jpg"},
-    {songName: "O Mahi Mahi", filePath: "songs/2.mp3", coverPath: "covers/2.jpg"},
-    {songName: "Aasa Khooda", filePath: "songs/3.mp3", coverPath: "covers/3.jpg"},
-    {songName: "Tum hi Ho", filePath: "songs/4.mp3", coverPath: "covers/4.jpg"},
-    {songName: "Lutt Putt Gaya ", filePath: "songs/5.mp3", coverPath: "covers/5.jpg"},
-    {songName: "Heartless", filePath: "songs/6.mp3", coverPath: "covers/6.jpg"},
-    {songName: "Tum Kitna pyar Karte Hooo", filePath: "songs/7.mp3", coverPath: "covers/7.jpg"},
-    {songName: "Arjun Valley", filePath: "songs/8.mp3", coverPath: "covers/8.jpg"},
-    {songName: "Jawan", filePath: "songs/9.mp3", coverPath: "covers/9.jpg"},
-    {songName: "Tum Kya Mile", filePath: "songs/10.mp3", coverPath: "covers/10.jpg"},
-]
-
-songItems.forEach((element, i)=>{ 
-    element.getElementsByTagName("img")[0].src = songs[i].coverPath; 
-    element.getElementsByClassName("songName")[0].innerText = songs[i].songName; 
-})
- 
-
-// Handle play/pause click
-masterPlay.addEventListener('click', ()=>{
-    if(audioElement.paused || audioElement.currentTime<=0){
-        audioElement.play();
-        masterPlay.classList.remove('fa-play-circle');
-        masterPlay.classList.add('fa-pause-circle');
-        gif.style.opacity = 1;
+audio = new Audio('music.mp3');
+audiogo = new Audio('gameover.mp3');
+setTimeout(() => {
+    audio.play()
+}, 1000);
+document.onkeydown = function (e) {
+    console.log("Key code is: ", e.keyCode)
+    if (e.keyCode == 38) {
+        dino = document.querySelector('.dino');
+        dino.classList.add('animateDino');
+        setTimeout(() => {
+            dino.classList.remove('animateDino')
+        }, 700);
     }
-    else{
-        audioElement.pause();
-        masterPlay.classList.remove('fa-pause-circle');
-        masterPlay.classList.add('fa-play-circle');
-        gif.style.opacity = 0;
+    if (e.keyCode == 39) {
+        dino = document.querySelector('.dino');
+        dinoX = parseInt(window.getComputedStyle(dino, null).getPropertyValue('left'));
+        dino.style.left = dinoX + 112 + "px";
     }
-})
-// Listen to Events
-audioElement.addEventListener('timeupdate', ()=>{ 
-    // Update Seekbar
-    progress = parseInt((audioElement.currentTime/audioElement.duration)* 100); 
-    myProgressBar.value = progress;
-})
-
-myProgressBar.addEventListener('change', ()=>{
-    audioElement.currentTime = myProgressBar.value * audioElement.duration/100;
-})
-
-const makeAllPlays = ()=>{
-    Array.from(document.getElementsByClassName('songItemPlay')).forEach((element)=>{
-        element.classList.remove('fa-pause-circle');
-        element.classList.add('fa-play-circle');
-    })
+    if (e.keyCode == 37) {
+        dino = document.querySelector('.dino');
+        dinoX = parseInt(window.getComputedStyle(dino, null).getPropertyValue('left'));
+        dino.style.left = (dinoX - 112) + "px";
+    }
 }
 
-Array.from(document.getElementsByClassName('songItemPlay')).forEach((element)=>{
-    element.addEventListener('click', (e)=>{ 
-        makeAllPlays();
-        songIndex = parseInt(e.target.id);
-        e.target.classList.remove('fa-play-circle');
-        e.target.classList.add('fa-pause-circle');
-        audioElement.src = `songs/${songIndex+1}.mp3`;
-        masterSongName.innerText = songs[songIndex].songName;
-        audioElement.currentTime = 0;
-        audioElement.play();
-        gif.style.opacity = 1;
-        masterPlay.classList.remove('fa-play-circle');
-        masterPlay.classList.add('fa-pause-circle');
-    })
-})
+setInterval(() => {
+    dino = document.querySelector('.dino');
+    gameOver = document.querySelector('.gameOver');
+    obstacle = document.querySelector('.obstacle');
 
-document.getElementById('next').addEventListener('click', ()=>{
-    if(songIndex>=9){
-        songIndex = 0
-    }
-    else{
-        songIndex += 1;
-    }
-    audioElement.src = `songs/${songIndex+1}.mp3`;
-    masterSongName.innerText = songs[songIndex].songName;
-    audioElement.currentTime = 0;
-    audioElement.play();
-    masterPlay.classList.remove('fa-play-circle');
-    masterPlay.classList.add('fa-pause-circle');
+    dx = parseInt(window.getComputedStyle(dino, null).getPropertyValue('left'));
+    dy = parseInt(window.getComputedStyle(dino, null).getPropertyValue('top'));
 
-})
+    ox = parseInt(window.getComputedStyle(obstacle, null).getPropertyValue('left'));
+    oy = parseInt(window.getComputedStyle(obstacle, null).getPropertyValue('top'));
 
-document.getElementById('previous').addEventListener('click', ()=>{
-    if(songIndex<=0){
-        songIndex = 0
+    offsetX = Math.abs(dx - ox);
+    offsetY = Math.abs(dy - oy);
+    // console.log(offsetX, offsetY)
+    if (offsetX < 73 && offsetY < 52) {
+        gameOver.innerHTML = "Game Over - Reload to Play Again"
+        obstacle.classList.remove('obstacleAni')
+        audiogo.play();
+        setTimeout(() => {
+            audiogo.pause();
+            audio.pause();
+        }, 1000);
     }
-    else{
-        songIndex -= 1;
+    else if (offsetX < 145 && cross) {
+        score += 1;
+        updateScore(score);
+        cross = false;
+        setTimeout(() => {
+            cross = true;
+        }, 1000);
+        setTimeout(() => {
+            aniDur = parseFloat(window.getComputedStyle(obstacle, null).getPropertyValue('animation-duration'));
+            newDur = aniDur - 0.1;
+            obstacle.style.animationDuration = newDur + 's';
+            console.log('New animation duration: ', newDur)
+        }, 500);
+
     }
-    audioElement.src = `songs/${songIndex+1}.mp3`;
-    masterSongName.innerText = songs[songIndex].songName;
-    audioElement.currentTime = 0;
-    audioElement.play();
-    masterPlay.classList.remove('fa-play-circle');
-    masterPlay.classList.add('fa-pause-circle');
-})
+
+}, 10);
+
+function updateScore(score) {
+    scoreCont.innerHTML = "Your Score: " + score
+}
